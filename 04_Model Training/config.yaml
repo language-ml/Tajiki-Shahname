@@ -1,0 +1,62 @@
+model_gru: &model_gru
+  kind: gru
+  num_layers: 2
+  d_model: 128
+  d_hidden: 512
+  dropout: 0.5
+  teacher_force: 0.2
+  
+model_transformer: &model_transformer
+  kind: transformer
+  d_model: 128
+  num_layers: 2
+  nhead: 4
+  dim_feedforward: 512
+  max_length: 64
+  dropout: 0.1
+  learn_positional_embedding: false
+
+default: &default
+  data_path: path:datasets/shahname.json
+  use_tqdm: True 
+  base_save_path: path:trained_ckpt
+  project_name_prefix: transliterate_final
+  experiment_name_suffix: null
+  train_batch_size: 128
+  valid_batch_size: 128
+  learning_rate: 0.0005
+  gradient_clipping: null # 1.0
+  # weight_decay: 0.01
+  num_epochs: 50
+  best_finder:
+    metric: valid_ed
+    higher_better: false
+
+run_configs:
+- <<: *default
+  source: persian
+  target: tajik
+  model_params:
+    <<: *model_transformer
+
+- <<: *default
+  source: tajik
+  target: persian
+  model_params:
+    <<: *model_transformer
+    
+- <<: *default
+  source: tajik
+  target: persian
+  gradient_clipping: 1.0
+  learning_rate: 0.001
+  model_params:
+    <<: *model_gru
+
+- <<: *default
+  source: persian
+  target: tajik
+  gradient_clipping: 1.0
+  learning_rate: 0.001
+  model_params:
+    <<: *model_gru
